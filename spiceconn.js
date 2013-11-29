@@ -164,7 +164,6 @@ SpiceConn.prototype =
             if (saved_header == undefined)
             {
                 var msg = new SpiceDataHeader(mb);
-                console.log(msg);
                 
                 if (msg.type > 500)
                 {

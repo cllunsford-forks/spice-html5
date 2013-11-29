@@ -46,14 +46,15 @@ SpiceWireReader.prototype =
     inbound: function (mb)
     {
         var at;
-
+        
         /* Just buffer if we don't need anything yet */
         if (this.needed == 0)
         {
             this.buffers.push(mb);
             return;
         }
-
+        
+        DEBUG > 2 && hexdump_buffer(mb);
         /* Optimization - if we have just one inbound block, and it's
             suitable for our needs, just use it.  */
         if (this.buffers.length == 0 && mb.byteLength >= this.needed)

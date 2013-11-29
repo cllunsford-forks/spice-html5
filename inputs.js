@@ -74,7 +74,7 @@ SpiceInputsConn.prototype.process_channel_message = function(msg)
 
 function handle_mousemove(e)
 {
-    var msg = new SpiceMiniData();
+    var msg = new SpiceDataHeader();
     var move;
     if (this.sc.mouse_mode == SPICE_MOUSE_MODE_CLIENT)
     {
@@ -112,7 +112,7 @@ function handle_mousemove(e)
 function handle_mousedown(e)
 {
     var press = new SpiceMsgcMousePress(this.sc, e)
-    var msg = new SpiceMiniData();
+    var msg = new SpiceDataHeader();
     msg.build_msg(SPICE_MSGC_INPUTS_MOUSE_PRESS, press);
     if (this.sc && this.sc.inputs && this.sc.inputs.state === "ready")
         this.sc.inputs.send_msg(msg);
@@ -129,7 +129,7 @@ function handle_contextmenu(e)
 function handle_mouseup(e)
 {
     var release = new SpiceMsgcMouseRelease(this.sc, e)
-    var msg = new SpiceMiniData();
+    var msg = new SpiceDataHeader();
     msg.build_msg(SPICE_MSGC_INPUTS_MOUSE_RELEASE, release);
     if (this.sc && this.sc.inputs && this.sc.inputs.state === "ready")
         this.sc.inputs.send_msg(msg);
@@ -148,7 +148,7 @@ function handle_mousewheel(e)
     press.buttons_state = 0;
     release.buttons_state = 0;
 
-    var msg = new SpiceMiniData();
+    var msg = new SpiceDataHeader();
     msg.build_msg(SPICE_MSGC_INPUTS_MOUSE_PRESS, press);
     if (this.sc && this.sc.inputs && this.sc.inputs.state === "ready")
         this.sc.inputs.send_msg(msg);
@@ -163,7 +163,7 @@ function handle_mousewheel(e)
 function handle_keydown(e)
 {
     var key = new SpiceMsgcKeyDown(e)
-    var msg = new SpiceMiniData();
+    var msg = new SpiceDataHeader();
     check_and_update_modifiers(e, key.code, this.sc);
     msg.build_msg(SPICE_MSGC_INPUTS_KEY_DOWN, key);
     if (this.sc && this.sc.inputs && this.sc.inputs.state === "ready")
@@ -175,7 +175,7 @@ function handle_keydown(e)
 function handle_keyup(e)
 {
     var key = new SpiceMsgcKeyUp(e)
-    var msg = new SpiceMiniData();
+    var msg = new SpiceDataHeader();
     check_and_update_modifiers(e, key.code, this.sc);
     msg.build_msg(SPICE_MSGC_INPUTS_KEY_UP, key);
     if (this.sc && this.sc.inputs && this.sc.inputs.state === "ready")
@@ -188,7 +188,7 @@ function sendCtrlAltDel()
 {
     if (sc && sc.inputs && sc.inputs.state === "ready"){
         var key = new SpiceMsgcKeyDown();
-        var msg = new SpiceMiniData();
+        var msg = new SpiceDataHeader();
 
         update_modifier(true, KEY_LCtrl, sc);
         update_modifier(true, KEY_Alt, sc);
@@ -206,7 +206,7 @@ function sendCtrlAltDel()
 
 function update_modifier(state, code, sc)
 {
-    var msg = new SpiceMiniData();
+    var msg = new SpiceDataHeader();
     if (!state)
     {
         var key = new SpiceMsgcKeyUp()

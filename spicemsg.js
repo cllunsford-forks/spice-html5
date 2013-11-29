@@ -231,6 +231,64 @@ SpiceLinkAuthReply.prototype =
     }
 }
 
+function SpiceDataHeader(a, at)
+{
+    this.serial = 0;
+    this.type = 0;
+    this.size = 0;
+    this.data = undefined;
+    if (a !== undefined)
+        this.from_buffer(a, at);
+}
+
+SpiceDataHeader.prototype =
+{
+    from_buffer: function(a, at)
+    {
+        at = at || 0;
+        var i;
+        var dv = new SpiceDataView(a);
+        this.serial = dv.getUint64(at, true); at += 8;
+        this.type = dv.getUint16(at, true); at += 2;
+        this.size = dv.getUint32(at, true); at += 4;
+        if (a.byteLength > at)
+        {
+            this.data = a.slice(at);
+            at += this.data.byteLength;
+        }
+    },
+    to_buffer : function(a, at)
+    {
+        at = at || 0;
+        var i;
+        var dv = new SpiceDataView(a);
+        dv.setUint64(at, this.serial, true); at += 8;
+        dv.setUint16(at, this.type, true); at += 2;
+        dv.setUint32(at, this.data ? this.data.byteLength : 0, true); at += 4;
+        if (this.data && this.data.byteLength > 0)
+        {
+            var u8arr = new Uint8Array(this.data);
+            for (i = 0; i < u8arr.length; i++, at++)
+                dv.setUint8(at, u8arr[i], true);
+        }
+    },
+    build_msg : function(in_type,  extra)
+    {
+        this.serial = 1;
+        this.type = in_type;
+        this.size = extra.buffer_size();
+        this.data = new ArrayBuffer(this.size);
+        extra.to_buffer(this.data);
+    },
+    buffer_size: function()
+    {
+        if (this.data)
+            return 14 + this.data.byteLength;
+        else
+            return 14;
+    },
+}
+
 function SpiceMiniData(a, at)
 {
     this.type = 0;
@@ -284,6 +342,7 @@ SpiceMiniData.prototype =
             return 6;
     },
 }
+
 
 function SpiceMsgChannels(a, at)
 {

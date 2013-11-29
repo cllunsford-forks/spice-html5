@@ -163,8 +163,9 @@ SpiceConn.prototype =
         {
             if (saved_header == undefined)
             {
-                var msg = new SpiceMiniData(mb);
-
+                var msg = new SpiceDataHeader(mb);
+                console.log(msg);
+                
                 if (msg.type > 500)
                 {
                     alert("Something has gone very wrong; we think we have message of type " + msg.type);
@@ -174,7 +175,7 @@ SpiceConn.prototype =
                 if (msg.size == 0)
                 {
                     this.process_message(msg);
-                    this.wire_reader.request(SpiceMiniData.prototype.buffer_size());
+                    this.wire_reader.request(SpiceDataHeader.prototype.buffer_size());
                 }
                 else
                 {
@@ -186,14 +187,16 @@ SpiceConn.prototype =
             {
                 saved_header.data = mb;
                 this.process_message(saved_header);
-                this.wire_reader.request(SpiceMiniData.prototype.buffer_size());
+                this.wire_reader.request(SpiceDataHeader.prototype.buffer_size());
                 this.wire_reader.save_header(undefined);
             }
         }
 
         else if (this.state == "start")
         {
+          
             this.reply_hdr = new SpiceLinkHeader(mb);
+            DEBUG > 1 && console.log(this.reply_hdr);
             if (this.reply_hdr.magic != SPICE_MAGIC)
             {
                 this.state = "error";
@@ -229,6 +232,7 @@ SpiceConn.prototype =
         else if (this.state == "ticket")
         {
             this.auth_reply = new SpiceLinkAuthReply(mb);
+            DEBUG > 1 && console.log(this.auth_reply);
             if (this.auth_reply.auth_code == SPICE_LINK_ERR_OK)
             {
                 DEBUG > 0 && console.log(this.type + ': Connected');
@@ -237,13 +241,13 @@ SpiceConn.prototype =
                 {
                     // FIXME - pixmap and glz dictionary config info?
                     var dinit = new SpiceMsgcDisplayInit();
-                    var reply = new SpiceMiniData();
+                    var reply = new SpiceDataHeader();
                     reply.build_msg(SPICE_MSGC_DISPLAY_INIT, dinit);
                     DEBUG > 0 && console.log("Request display init");
                     this.send_msg(reply);
                 }
                 this.state = "ready";
-                this.wire_reader.request(SpiceMiniData.prototype.buffer_size());
+                this.wire_reader.request(SpiceDataHeader.prototype.buffer_size());
                 if (this.timeout)
                 {
                     window.clearTimeout(this.timeout);
@@ -267,7 +271,7 @@ SpiceConn.prototype =
     },
 
     process_common_messages : function(msg)
-    {
+    { 
         if (msg.type == SPICE_MSG_SET_ACK)
         {
             var ack = new SpiceMsgSetAck(msg.data);
@@ -276,7 +280,7 @@ SpiceConn.prototype =
             DEBUG > 1 && console.log(this.type + ": set ack to " + ack.window);
             this.msgs_until_ack = this.ack_window;
             var ackack = new SpiceMsgcAckSync(ack);
-            var reply = new SpiceMiniData();
+            var reply = new SpiceDataHeader();
             reply.build_msg(SPICE_MSGC_ACK_SYNC, ackack);
             this.send_msg(reply);
             return true;
@@ -285,7 +289,7 @@ SpiceConn.prototype =
         if (msg.type == SPICE_MSG_PING)
         {
             DEBUG > 1 && console.log("ping!");
-            var pong = new SpiceMiniData;
+            var pong = new SpiceDataHeader();
             pong.type = SPICE_MSGC_PONG;
             if (msg.data)
             {
@@ -336,7 +340,7 @@ SpiceConn.prototype =
             if (this.msgs_until_ack <= 0)
             {
                 this.msgs_until_ack = this.ack_window;
-                var ack = new SpiceMiniData();
+                var ack = new SpiceDataHeader();
                 ack.type = SPICE_MSGC_ACK;
                 this.send_msg(ack);
                 DEBUG > 1 && console.log(this.type + ": sent ack");

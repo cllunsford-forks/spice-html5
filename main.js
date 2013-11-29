@@ -83,12 +83,12 @@ SpiceMainConn.prototype.process_channel_message = function(msg)
             (this.main_init.supported_mouse_modes & SPICE_MOUSE_MODE_CLIENT))
         {
             var mode_request = new SpiceMsgcMainMouseModeRequest(SPICE_MOUSE_MODE_CLIENT);
-            var mr = new SpiceMiniData();
+            var mr = new SpiceDataHeader();
             mr.build_msg(SPICE_MSGC_MAIN_MOUSE_MODE_REQUEST, mode_request);
             this.send_msg(mr);
         }
 
-        var attach = new SpiceMiniData;
+        var attach = new SpiceDataHeader();
         attach.type = SPICE_MSGC_MAIN_ATTACH_CHANNELS;
         attach.size = attach.buffer_size();
         this.send_msg(attach);

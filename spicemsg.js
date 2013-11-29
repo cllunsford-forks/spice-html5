@@ -283,9 +283,9 @@ SpiceDataHeader.prototype =
     buffer_size: function()
     {
         if (this.data)
-            return 14 + this.data.byteLength;
+            return 18 + this.data.byteLength;
         else
-            return 14;
+            return 18;
     },
 }
 

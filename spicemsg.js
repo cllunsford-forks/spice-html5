@@ -236,6 +236,7 @@ function SpiceDataHeader(a, at)
     this.serial = 0;
     this.type = 0;
     this.size = 0;
+    this.sub_list = 0;
     this.data = undefined;
     if (a !== undefined)
         this.from_buffer(a, at);
@@ -251,6 +252,7 @@ SpiceDataHeader.prototype =
         this.serial = dv.getUint64(at, true); at += 8;
         this.type = dv.getUint16(at, true); at += 2;
         this.size = dv.getUint32(at, true); at += 4;
+        this.sub_list = dv.getUint32(at, true); at += 4;
         if (a.byteLength > at)
         {
             this.data = a.slice(at);
@@ -265,6 +267,7 @@ SpiceDataHeader.prototype =
         dv.setUint64(at, this.serial, true); at += 8;
         dv.setUint16(at, this.type, true); at += 2;
         dv.setUint32(at, this.data ? this.data.byteLength : 0, true); at += 4;
+        dv.setUint32(at, this.sub_list, true); at += 4;
         if (this.data && this.data.byteLength > 0)
         {
             var u8arr = new Uint8Array(this.data);
@@ -277,6 +280,7 @@ SpiceDataHeader.prototype =
         this.serial = 1;
         this.type = in_type;
         this.size = extra.buffer_size();
+        this.sub_list = 0;
         this.data = new ArrayBuffer(this.size);
         extra.to_buffer(this.data);
     },

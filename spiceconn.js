@@ -35,7 +35,7 @@ function SpiceConn(o)
 
     if (! this.ws.binaryType)
         throw new Error("WebSocket doesn't support binaryType.  Try a different browser.");
-    
+
     this.connection_id = o.connection_id !== undefined ? o.connection_id : 0;
     this.type = o.type !== undefined ? o.type : SPICE_CHANNEL_MAIN;
     this.chan_id = o.chan_id !== undefined ? o.chan_id : 0;

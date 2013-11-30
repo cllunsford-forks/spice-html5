@@ -347,7 +347,6 @@ SpiceMiniData.prototype =
     },
 }
 
-
 function SpiceMsgChannels(a, at)
 {
     this.num_of_channels = 0;

@@ -152,7 +152,7 @@ SpiceConn.prototype =
         this.messages_sent++;
         msg.serial = this.messages_sent;
         msg.to_buffer(mb);
-        
+
         DEBUG > 0 && console.log(">> hdr " + this.channel_type() + " type " + msg.type + " size " + mb.byteLength);
         DEBUG > 2 && hexdump_buffer(mb);
         this.ws.send(mb);
@@ -166,7 +166,7 @@ SpiceConn.prototype =
             if (saved_header == undefined)
             {
                 var msg = new SpiceDataHeader(mb);
-                
+
                 if (msg.type > 500)
                 {
                     alert("Something has gone very wrong; we think we have message of type " + msg.type);
@@ -195,9 +195,7 @@ SpiceConn.prototype =
 
         else if (this.state == "start")
         {
-          
             this.reply_hdr = new SpiceLinkHeader(mb);
-            DEBUG > 1 && console.log(this.reply_hdr);
             if (this.reply_hdr.magic != SPICE_MAGIC)
             {
                 this.state = "error";
@@ -233,7 +231,6 @@ SpiceConn.prototype =
         else if (this.state == "ticket")
         {
             this.auth_reply = new SpiceLinkAuthReply(mb);
-            DEBUG > 1 && console.log(this.auth_reply);
             if (this.auth_reply.auth_code == SPICE_LINK_ERR_OK)
             {
                 DEBUG > 0 && console.log(this.type + ': Connected');
@@ -272,7 +269,7 @@ SpiceConn.prototype =
     },
 
     process_common_messages : function(msg)
-    { 
+    {
         if (msg.type == SPICE_MSG_SET_ACK)
         {
             var ack = new SpiceMsgSetAck(msg.data);

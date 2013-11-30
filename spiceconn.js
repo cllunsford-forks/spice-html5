@@ -35,7 +35,7 @@ function SpiceConn(o)
 
     if (! this.ws.binaryType)
         throw new Error("WebSocket doesn't support binaryType.  Try a different browser.");
-
+    
     this.connection_id = o.connection_id !== undefined ? o.connection_id : 0;
     this.type = o.type !== undefined ? o.type : SPICE_CHANNEL_MAIN;
     this.chan_id = o.chan_id !== undefined ? o.chan_id : 0;
@@ -149,8 +149,10 @@ SpiceConn.prototype =
     send_msg: function(msg)
     {
         var mb = new ArrayBuffer(msg.buffer_size());
-        msg.to_buffer(mb);
         this.messages_sent++;
+        msg.serial = this.messages_sent;
+        msg.to_buffer(mb);
+        
         DEBUG > 0 && console.log(">> hdr " + this.channel_type() + " type " + msg.type + " size " + mb.byteLength);
         DEBUG > 2 && hexdump_buffer(mb);
         this.ws.send(mb);

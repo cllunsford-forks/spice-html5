@@ -217,6 +217,12 @@ SpiceConn.prototype =
         {
             this.reply_link = new SpiceLinkReply(mb);
              // FIXME - Screen the caps - require minihdr at least, right?
+            DEBUG > 0 && console.log("COMMON CAPS: "+ this.reply_link.common_caps);
+            if (SPICE_COMMON_CAP_MINI_HEADER in this.reply_link.common_caps)
+            {
+                this.use_mini_header = true;
+            }
+            
             if (this.reply_link.error)
             {
                 this.state = "error";

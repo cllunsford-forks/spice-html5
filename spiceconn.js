@@ -216,10 +216,22 @@ SpiceConn.prototype =
         else if (this.state == "link")
         {
             this.reply_link = new SpiceLinkReply(mb);
-             // FIXME - Screen the caps - require minihdr at least, right?
-            DEBUG > 0 && console.log("COMMON CAPS: "+ this.reply_link.common_caps);
-            if (SPICE_COMMON_CAP_MINI_HEADER in this.reply_link.common_caps)
+
+            if (this.reply_link.common_caps[0] & (1 << SPICE_COMMON_CAP_PROTOCOL_AUTH_SELECTION))
             {
+                DEBUG > 0 && console.log("+CAP: SPICE_COMMON_CAP_PROTOCOL_AUTH_SELECTION");
+            }
+            if (this.reply_link.common_caps[0] & (1 << SPICE_COMMON_CAP_AUTH_SPICE))
+            {
+                DEBUG > 0 && console.log("+CAP: SPICE_COMMON_CAP_AUTH_SPICE");
+            }
+            if (this.reply_link.common_caps[0] & (1 << SPICE_COMMON_CAP_AUTH_SASL))
+            {
+                DEBUG > 0 && console.log("+CAP: SPICE_COMMON_CAP_AUTH_SASL");
+            }
+            if (this.reply_link.common_caps[0] & (1 << SPICE_COMMON_CAP_MINI_HEADER))
+            {
+                DEBUG > 0 && console.log("+CAP: SPICE_COMMON_CAP_MINI_HEADER");
                 this.use_mini_header = true;
             }
             

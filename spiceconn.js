@@ -63,6 +63,8 @@ function SpiceConn(o)
     this.wire_reader = new SpiceWireReader(this, this.process_inbound);
     this.messages_sent = 0;
     this.warnings = [];
+    
+    this.use_mini_header = false;
 
     this.ws.addEventListener('open', function(e) {
         DEBUG > 0 && console.log(">> WebSockets.onopen");
@@ -165,7 +167,8 @@ SpiceConn.prototype =
         {
             if (saved_header == undefined)
             {
-                var msg = new SpiceDataHeader(mb);
+                var msg = this.new_header();
+                msg.from_buffer(mb);
 
                 if (msg.type > 500)
                 {
@@ -176,7 +179,7 @@ SpiceConn.prototype =
                 if (msg.size == 0)
                 {
                     this.process_message(msg);
-                    this.wire_reader.request(SpiceDataHeader.prototype.buffer_size());
+                    this.wire_reader.request(this.get_header_size());
                 }
                 else
                 {
@@ -188,7 +191,7 @@ SpiceConn.prototype =
             {
                 saved_header.data = mb;
                 this.process_message(saved_header);
-                this.wire_reader.request(SpiceDataHeader.prototype.buffer_size());
+                this.wire_reader.request(this.get_header_size());
                 this.wire_reader.save_header(undefined);
             }
         }
@@ -213,7 +216,25 @@ SpiceConn.prototype =
         else if (this.state == "link")
         {
             this.reply_link = new SpiceLinkReply(mb);
-             // FIXME - Screen the caps - require minihdr at least, right?
+
+            if (this.reply_link.common_caps[0] & (1 << SPICE_COMMON_CAP_PROTOCOL_AUTH_SELECTION))
+            {
+                DEBUG > 0 && console.log("+CAP: SPICE_COMMON_CAP_PROTOCOL_AUTH_SELECTION");
+            }
+            if (this.reply_link.common_caps[0] & (1 << SPICE_COMMON_CAP_AUTH_SPICE))
+            {
+                DEBUG > 0 && console.log("+CAP: SPICE_COMMON_CAP_AUTH_SPICE");
+            }
+            if (this.reply_link.common_caps[0] & (1 << SPICE_COMMON_CAP_AUTH_SASL))
+            {
+                DEBUG > 0 && console.log("+CAP: SPICE_COMMON_CAP_AUTH_SASL");
+            }
+            if (this.reply_link.common_caps[0] & (1 << SPICE_COMMON_CAP_MINI_HEADER))
+            {
+                DEBUG > 0 && console.log("+CAP: SPICE_COMMON_CAP_MINI_HEADER");
+                this.use_mini_header = true;
+            }
+            
             if (this.reply_link.error)
             {
                 this.state = "error";
@@ -239,13 +260,13 @@ SpiceConn.prototype =
                 {
                     // FIXME - pixmap and glz dictionary config info?
                     var dinit = new SpiceMsgcDisplayInit();
-                    var reply = new SpiceDataHeader();
+                    var reply = this.new_header();
                     reply.build_msg(SPICE_MSGC_DISPLAY_INIT, dinit);
                     DEBUG > 0 && console.log("Request display init");
                     this.send_msg(reply);
                 }
                 this.state = "ready";
-                this.wire_reader.request(SpiceDataHeader.prototype.buffer_size());
+                this.wire_reader.request(this.get_header_size());
                 if (this.timeout)
                 {
                     window.clearTimeout(this.timeout);
@@ -278,7 +299,7 @@ SpiceConn.prototype =
             DEBUG > 1 && console.log(this.type + ": set ack to " + ack.window);
             this.msgs_until_ack = this.ack_window;
             var ackack = new SpiceMsgcAckSync(ack);
-            var reply = new SpiceDataHeader();
+            var reply = this.new_header();
             reply.build_msg(SPICE_MSGC_ACK_SYNC, ackack);
             this.send_msg(reply);
             return true;
@@ -287,7 +308,7 @@ SpiceConn.prototype =
         if (msg.type == SPICE_MSG_PING)
         {
             DEBUG > 1 && console.log("ping!");
-            var pong = new SpiceDataHeader();
+            var pong = this.new_header();
             pong.type = SPICE_MSGC_PONG;
             if (msg.data)
             {
@@ -338,7 +359,7 @@ SpiceConn.prototype =
             if (this.msgs_until_ack <= 0)
             {
                 this.msgs_until_ack = this.ack_window;
-                var ack = new SpiceDataHeader();
+                var ack = this.new_header();
                 ack.type = SPICE_MSGC_ACK;
                 this.send_msg(ack);
                 DEBUG > 1 && console.log(this.type + ": sent ack");
@@ -346,6 +367,22 @@ SpiceConn.prototype =
         }
 
         return rc;
+    },
+
+    new_header: function()
+    {
+      if (this.use_mini_header)
+        return new SpiceMiniData();
+      else
+        return new SpiceDataHeader();
+    },
+    
+    get_header_size: function()
+    {
+      if (this.use_mini_header)
+        return SpiceMiniData.prototype.buffer_size();
+      else
+        return SpiceDataHeader.prototype.buffer_size();
     },
 
     channel_type: function()
